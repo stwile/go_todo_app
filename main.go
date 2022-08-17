@@ -51,6 +51,7 @@ func run(ctx context.Context, l net.Listener) error {
 	if err := s.Shutdown(context.Background()); err != nil {
 		log.Printf("failed to shutdown: %+v", err)
 	}
+
 	// Goメソッドで起動した別語ルーチンの終了を待つ
 	return eg.Wait()
 }
