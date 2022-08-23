@@ -3,12 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"golang.org/x/sync/errgroup"
 	"log"
 	"net"
 	"net/http"
 	"os"
-
-	"golang.org/x/sync/errgroup"
 )
 
 func main() {
