@@ -10,7 +10,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/stwile/go_todo_app/config"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -25,7 +24,7 @@ func run(ctx context.Context) error {
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	cfg, err := config.New()
+	cfg, err := New()
 	if err != nil {
 		return err
 	}
