@@ -6,6 +6,8 @@ import (
 	"log"
 	"net"
 	"os"
+
+	"github.com/stwile/go_todo_app/config"
 )
 
 func main() {
@@ -16,7 +18,7 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	cfg, err := New()
+	cfg, err := config.New()
 	if err != nil {
 		return err
 	}
