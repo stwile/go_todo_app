@@ -13,7 +13,7 @@ import (
 
 type AddTask struct {
 	DB        *sqlx.DB
-	Repo      *store.Repository
+	Repo      store.Repository
 	Validator *validator.Validate
 }
 
