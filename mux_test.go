@@ -1,16 +1,24 @@
 package main
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stwile/go_todo_app/config"
 )
 
 func TestNewMux(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/health", nil)
-	sut := NewMux()
+	sut, cleanup, err := NewMux(context.Background(), &config.Config{})
+	if err != nil {
+		t.Error(err)
+	}
+	defer cleanup()
+
 	sut.ServeHTTP(w, r)
 	resp := w.Result()
 	t.Cleanup(func() {
