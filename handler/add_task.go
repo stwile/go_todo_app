@@ -3,16 +3,14 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 
 	"github.com/stwile/go_todo_app/entity"
-	"github.com/stwile/go_todo_app/store"
 )
 
 type AddTask struct {
-	Store     *store.TaskStore
+	Service   AddTaskService
 	Validator *validator.Validate
 }
 
@@ -32,19 +30,13 @@ func (at *AddTask) ServeHttp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := &entity.Task{
-		Title:   b.Title,
-		Status:  entity.TaskStatusTodo,
-		Created: time.Now(),
-	}
-
-	id, err := store.Tasks.Add(t)
+	t, err := at.Service.AddTask(ctx, b.Title)
 	if err != nil {
 		RespondJson(ctx, w, &ErrResponse{Message: err.Error()}, http.StatusInternalServerError)
 		return
 	}
 	rsp := struct {
 		ID entity.TaskID `json:"id"`
-	}{ID: id}
+	}{ID: t.ID}
 	RespondJson(ctx, w, rsp, http.StatusOK)
 }
