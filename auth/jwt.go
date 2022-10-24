@@ -4,8 +4,12 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"time"
 
+	"github.com/google/uuid"
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/stwile/go_todo_app/clock"
 	"github.com/stwile/go_todo_app/entity"
@@ -29,7 +33,7 @@ type Store interface {
 	Load(ctx context.Context, key string) (entity.UserID, error)
 }
 
-func NewJWTer(s Store) (*JWTer, error) {
+func NewJWTer(s Store, c clock.Clocker) (*JWTer, error) {
 	j := &JWTer{Store: s}
 	privkey, err := parse(rawPrivKey)
 	if err != nil {
@@ -41,7 +45,7 @@ func NewJWTer(s Store) (*JWTer, error) {
 	}
 	j.PrivateKey = privkey
 	j.PublicKey = pubkey
-	j.Clocker = clock.RealClocker{}
+	j.Clocker = c
 	return j, nil
 }
 
@@ -51,4 +55,33 @@ func parse(rawKey []byte) (jwk.Key, error) {
 		return nil, err
 	}
 	return key, nil
+}
+
+const (
+	RoleKey     = "role"
+	UserNameKey = "user_name"
+)
+
+func (j *JWTer) GenerateToken(ctx context.Context, u entity.User) ([]byte, error) {
+	tok, err := jwt.NewBuilder().
+		JwtID(uuid.New().String()).
+		Issuer("github.com/stwile/go_todo_app").
+		Subject("access_token").
+		IssuedAt(j.Clocker.Now()).
+		Expiration(j.Clocker.Now().Add(30*time.Minute)).
+		Claim(RoleKey, u.Role).
+		Claim(UserNameKey, u.Name).
+		Build()
+	if err != nil {
+		return nil, fmt.Errorf("GetToken: failed to build token %w", err)
+	}
+	if err := j.Store.Save(ctx, tok.JwtID(), u.ID); err != nil {
+		return nil, err
+	}
+
+	signed, err := jwt.Sign(tok, jwt.WithKey(jwa.RS256, j.PrivateKey))
+	if err != nil {
+		return nil, err
+	}
+	return signed, nil
 }
