@@ -7,6 +7,8 @@ import (
 	"github.com/stwile/go_todo_app/entity"
 )
 
+var _ Store = &StoreMock{}
+
 type StoreMock struct {
 	LoadFunc func(ctx context.Context, key string) (entity.UserID, error)
 
@@ -38,7 +40,7 @@ func (mock *StoreMock) Load(ctx context.Context, key string) (entity.UserID, err
 		Ctx: ctx,
 		Key: key,
 	}
-	mock.lockLoad.RLock()
+	mock.lockLoad.Lock()
 	mock.calls.Load = append(mock.calls.Load, callInfo)
 	mock.lockLoad.Unlock()
 	return mock.LoadFunc(ctx, key)
